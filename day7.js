@@ -1,26 +1,27 @@
-let input = require('fs').readFileSync('./input/day7.txt', { encoding: 'utf8' })
-
-input =
-`Step C must be finished before step A can begin.
-Step C must be finished before step F can begin.
-Step A must be finished before step B can begin.
-Step A must be finished before step D can begin.
-Step B must be finished before step E can begin.
-Step D must be finished before step E can begin.
-Step F must be finished before step E can begin.`;
+let input = require('fs').readFileSync('./input/day7.txt', {
+	encoding: 'utf8'
+});
 
 class Node {
-	constructor(label, children=[], parent) {
+	constructor(label, children = [], parents = []) {
 		this.label = label;
 		this.children = children;
-		this.parent = parent;
+		this.parents = parents;
+		this.blown = false;
+	}
+
+	// This node is only reachable if all of it's parent fuses have
+	// been blown.
+	isLive() {
+		return this.parents.filter((p) => !p.blown).length === 0;
 	}
 }
 
 // board... as in circuit board?
 let board = {};
 
-input.split('\n').forEach(line => {
+// Build it
+input.split('\n').forEach((line) => {
 	const [, parent, child] = /Step (.) [a-z ]+(.)/gm.exec(line);
 	// Lookup node from board or create a new one and return that
 	const node = board[parent] || (board[parent] = new Node(parent));
@@ -28,10 +29,44 @@ input.split('\n').forEach(line => {
 	node.children.push(child);
 	// Add the child to the board with this as it's parent
 	if (!board[child]) {
-		board[child] = new Node(child, [], node.label);
+		board[child] = new Node(child, [], [node]);
+	} else {
+		board[child].parents.push(node);
 	}
 });
 
-const getStartingCircuits = (board) => Object.keys(board).map(k => board[k].parent ? null : k).filter(Boolean);
+// Figure out where to start
+const getStartingCircuits = (board) =>
+	Object.keys(board)
+		.map((k) => (board[k].parents.length ? null : k))
+		.filter(Boolean);
 
-console.log(getStartingCircuits(board));
+// Figure out where it ends so we know to prioritize it last
+const getEndingCircuits = (board) =>
+	Object.keys(board)
+		.map((k) => (board[k].children.length ? null : k))
+		.filter(Boolean);
+
+const partOne = (board) => {
+	let openCircuits = getStartingCircuits(board);
+	let endingCircuits = getEndingCircuits(board);
+	const path = [];
+	while (openCircuits.length) {
+		let nextKey = openCircuits.sort().shift();
+		board[nextKey].blown = true;
+		path.push(nextKey);
+		openCircuits = openCircuits.concat(
+			board[nextKey].children.filter(
+				(child) =>
+					!board[child].blown &&
+					endingCircuits.indexOf(child) === -1 &&
+					openCircuits.indexOf(child) === -1 &&
+					board[child].isLive()
+			)
+		);
+	}
+
+	return path.concat(endingCircuits.sort()).join('');
+};
+
+console.log(partOne(board));
