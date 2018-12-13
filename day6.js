@@ -108,7 +108,6 @@ const partOne = (graph) => {
 		}
 	}
 
-
 	// Right
 	for (let i = 0; i <= graph.highY; i++) {
 		let key = `${graph.highX},${i}`;
