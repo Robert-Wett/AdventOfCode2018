@@ -48,7 +48,7 @@ const buildGraph = (input) => {
 	return graph;
 }
 
-const getBiggestFiniteArea = (graph) => {
+const partOne = (graph) => {
 	graph.setKeys.forEach(k => {
 		for (let y = 0; y <= graph.highY; y++) {
 			for (let x = 0; x <= graph.highX; x++) {
@@ -150,6 +150,7 @@ const getBiggestFiniteArea = (graph) => {
 	return maxEntryValue;
 }
 
+// Phew - this was much easier
 const partTwo = (graph) => {
 
 	// Helper function that detects points on any edge
@@ -176,55 +177,6 @@ const partTwo = (graph) => {
 		}
 	});
 
-	// This is terrible, but here we detect the keys that are infinite. A key is determined
-	// to be infinite if it has a point on the edge of the graph.
-	graph.infiniteKeys = [];
-
-	// Top
-	for (let i = 0; i <= graph.highX; i++) {
-		let key = `${i},0`;
-		if (!graph[key].double) {
-			let infKey = graph[key].closest;
-			if (graph.infiniteKeys.indexOf(infKey) < 0) {
-				graph.infiniteKeys.push(infKey);
-			}
-		}
-	}
-
-	// Left
-	for (let i = 0; i <= graph.highY; i++) {
-		let key = `0,${i}`;
-		if (!graph[key].double) {
-			let infKey = graph[key].closest;
-			if (graph.infiniteKeys.indexOf(infKey) < 0) {
-				graph.infiniteKeys.push(infKey);
-			}
-		}
-	}
-
-
-	// Right
-	for (let i = 0; i <= graph.highY; i++) {
-		let key = `${graph.highX},${i}`;
-		if (!graph[key].double) {
-			let infKey = graph[key].closest;
-			if (graph.infiniteKeys.indexOf(infKey) < 0) {
-				graph.infiniteKeys.push(infKey);
-			}
-		}
-	}
-
-	// Bottom
-	for (let i = 0; i <= graph.highX; i++) {
-		let key = `${i},${graph.highY}`;
-		if (!graph[key].double) {
-			let infKey = graph[key].closest;
-			if (graph.infiniteKeys.indexOf(infKey) < 0) {
-				graph.infiniteKeys.push(infKey);
-			}
-		}
-	}
-
 	const region = [];
 	for (let y = 0; y <= graph.highY; y++) {
 		for (let x = 0; x <= graph.highX; x++) {
@@ -240,6 +192,6 @@ const partTwo = (graph) => {
 
 let graph = buildGraph(input);
 // Part 1
-console.log(getBiggestFiniteArea(graph));
+console.log(partOne(graph));
 // Part 2
 console.log(partTwo(graph));
