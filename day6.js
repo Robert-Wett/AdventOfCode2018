@@ -65,7 +65,6 @@ class Point {
 		this.x = x;
 		this.y = y;
 		this.on = on;
-		this.closest = closest;
 		this.dist = Number.MAX_SAFE_INTEGER;
 		this.double = false;
 	}
@@ -108,7 +107,6 @@ const buildGraph = (input) => {
 
 	return graph;
 }
-
 
 const getBiggestFiniteArea = (graph) => {
 	graph.setKeys.forEach(k => {
@@ -212,5 +210,96 @@ const getBiggestFiniteArea = (graph) => {
 	return maxEntryValue;
 }
 
+const partTwo = (graph) => {
+
+	// Helper function that detects points on any edge
+	const isSafe = (x, y, { highX, highY }) =>  (x !== 0 || y !== 0 || x !== highX || y !== highY);
+
+	// First, zero out all the distances from the graph and flip all the 'active' boolean switches
+	// to off; we don't care if it's a point from the input or not calculating this region.
+	for (let y = 0; y <= graph.highY; y++) {
+		for (let x = 0; x <= graph.highX; x++) {
+			graph[`${x},${y}`].dist = 0;
+			graph[`${x},${y}`].on = false;
+		}
+	}
+
+	// Sum up all the distance values
+	graph.setKeys.forEach(k => {
+		for (let y = 0; y <= graph.highY; y++) {
+			for (let x = 0; x <= graph.highX; x++) {
+				let nextPoint = graph[`${x},${y}`];
+				if (!nextPoint.on) {
+					nextPoint.dist += graph[k].distFrom(nextPoint);
+				}
+			}
+		}
+	});
+
+	// This is terrible, but here we detect the keys that are infinite. A key is determined
+	// to be infinite if it has a point on the edge of the graph.
+	graph.infiniteKeys = [];
+
+	// Top
+	for (let i = 0; i <= graph.highX; i++) {
+		let key = `${i},0`;
+		if (!graph[key].double) {
+			let infKey = graph[key].closest;
+			if (graph.infiniteKeys.indexOf(infKey) < 0) {
+				graph.infiniteKeys.push(infKey);
+			}
+		}
+	}
+
+	// Left
+	for (let i = 0; i <= graph.highY; i++) {
+		let key = `0,${i}`;
+		if (!graph[key].double) {
+			let infKey = graph[key].closest;
+			if (graph.infiniteKeys.indexOf(infKey) < 0) {
+				graph.infiniteKeys.push(infKey);
+			}
+		}
+	}
+
+
+	// Right
+	for (let i = 0; i <= graph.highY; i++) {
+		let key = `${graph.highX},${i}`;
+		if (!graph[key].double) {
+			let infKey = graph[key].closest;
+			if (graph.infiniteKeys.indexOf(infKey) < 0) {
+				graph.infiniteKeys.push(infKey);
+			}
+		}
+	}
+
+	// Bottom
+	for (let i = 0; i <= graph.highX; i++) {
+		let key = `${i},${graph.highY}`;
+		if (!graph[key].double) {
+			let infKey = graph[key].closest;
+			if (graph.infiniteKeys.indexOf(infKey) < 0) {
+				graph.infiniteKeys.push(infKey);
+			}
+		}
+	}
+
+	const region = [];
+	for (let y = 0; y <= graph.highY; y++) {
+		for (let x = 0; x <= graph.highX; x++) {
+			let key = `${x},${y}`;
+			if (isSafe(x, y, graph) && graph[key].dist < 10000) {
+				region.push(graph[key]);
+			}
+		}
+	}
+
+	return region.length;
+}
+
 let graph = buildGraph(realInput);
+// Part 1
 console.log(getBiggestFiniteArea(graph));
+// Part 2
+console.log(partTwo(graph));
