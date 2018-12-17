@@ -1,21 +1,21 @@
 let input = require('fs').readFileSync('./input/day3.txt', { encoding: 'utf8' });
 
-const parseInputLine = (line, grid={}) => {
-	const [_, id, x, y, width, height]= /(\d+) @ (\d+),(\d+): (\d+)x(\d+)$/.exec(line);
-	grid[Number(id)] = { x: Number(x), y: Number(y), width: Number(width), height: Number(height) }; 
-}
+const parseInputLine = (line, grid = {}) => {
+	const [_, id, x, y, width, height] = /(\d+) @ (\d+),(\d+): (\d+)x(\d+)$/.exec(line);
+	grid[Number(id)] = { x: Number(x), y: Number(y), width: Number(width), height: Number(height) };
+};
 
-const buildGridLookup = (input) => {
+const buildGridLookup = input => {
 	const gridLookup = {};
 	input.split('\n').forEach(line => parseInputLine(line, gridLookup));
 	return gridLookup;
-}
+};
 
 const grid = [];
 let [gridNumber, inputGraph] = [1000, buildGridLookup(input)];
 
 for (let i = 0; i < gridNumber; i++) {
-	grid.push(Array.from({ length: gridNumber}, () => []));
+	grid.push(Array.from({ length: gridNumber }, () => []));
 }
 
 Object.keys(inputGraph).forEach(id => {
@@ -35,10 +35,10 @@ console.log(sharedCells);
 
 // Part 2
 let ids = new Set([]);
-grid.map(
-	row => row.map(rowEntry => {
+grid.map(row =>
+	row.map(rowEntry => {
 		if (rowEntry.length > 1) {
-			rowEntry.forEach(val => ids.add(val))
+			rowEntry.forEach(val => ids.add(val));
 		}
 	})
 );

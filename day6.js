@@ -1,7 +1,7 @@
-let input = require('fs').readFileSync('./input/day6.txt', { encoding: 'utf8' })
+let input = require('fs').readFileSync('./input/day6.txt', { encoding: 'utf8' });
 
 class Point {
-	constructor(x, y, on=false) {
+	constructor(x, y, on = false) {
 		this.x = x;
 		this.y = y;
 		this.on = on;
@@ -10,11 +10,11 @@ class Point {
 	}
 
 	distFrom(point) {
-		return Math.abs(point.x - this.x) + Math.abs(point.y - this.y)
+		return Math.abs(point.x - this.x) + Math.abs(point.y - this.y);
 	}
 }
 
-const buildGraph = (input) => {
+const buildGraph = input => {
 	let graph = {
 		highX: 0,
 		highY: 0,
@@ -34,8 +34,8 @@ const buildGraph = (input) => {
 	// Bump up the max edges here a little to let the finite numbers have some
 	// room to breath and 'terminate'. If you have a point on the edge and don't
 	// bump this number up, it'll show up as an infinite key and be removed later.
-	graph.highX += 5
-	graph.highY += 5
+	graph.highX += 5;
+	graph.highY += 5;
 
 	for (let y = 0; y <= graph.highY; y++) {
 		for (let x = 0; x <= graph.highX; x++) {
@@ -46,9 +46,9 @@ const buildGraph = (input) => {
 	}
 
 	return graph;
-}
+};
 
-const partOne = (graph) => {
+const partOne = graph => {
 	graph.setKeys.forEach(k => {
 		for (let y = 0; y <= graph.highY; y++) {
 			for (let x = 0; x <= graph.highX; x++) {
@@ -131,14 +131,14 @@ const partOne = (graph) => {
 	}
 
 	const filtered = Object.keys(graph.areas)
-						.filter(key => !graph.infiniteKeys.includes(key))
-						.reduce((obj, key) => {
-							return {
-								...obj,
-								[key]: graph.areas[key]
-							};
-						}, {});
-	
+		.filter(key => !graph.infiniteKeys.includes(key))
+		.reduce((obj, key) => {
+			return {
+				...obj,
+				[key]: graph.areas[key]
+			};
+		}, {});
+
 	let maxEntryValue = 0;
 	for (const entryKey in filtered) {
 		if (filtered[entryKey] > maxEntryValue) {
@@ -147,13 +147,12 @@ const partOne = (graph) => {
 	}
 
 	return maxEntryValue;
-}
+};
 
 // Phew - this was much easier
-const partTwo = (graph) => {
-
+const partTwo = graph => {
 	// Helper function that detects points on any edge
-	const isSafe = (x, y, { highX, highY }) =>  (x !== 0 || y !== 0 || x !== highX || y !== highY);
+	const isSafe = (x, y, { highX, highY }) => x !== 0 || y !== 0 || x !== highX || y !== highY;
 
 	// First, zero out all the distances from the graph and flip all the 'active' boolean switches
 	// to off; we don't care if it's a point from the input or not calculating this region.
@@ -187,7 +186,7 @@ const partTwo = (graph) => {
 	}
 
 	return region.length;
-}
+};
 
 let graph = buildGraph(input);
 // Part 1

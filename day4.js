@@ -1,15 +1,15 @@
 let input = require('fs')
-				.readFileSync('./input/day4.txt', { encoding: 'utf8' })
-				.split('\n')
-				.sort((a, b) => {
-					let [d1, d2] = [new Date(a.slice(1, 17)), new Date(b.slice(1, 17))];
-					return d1 - d2;
-				});
+	.readFileSync('./input/day4.txt', { encoding: 'utf8' })
+	.split('\n')
+	.sort((a, b) => {
+		let [d1, d2] = [new Date(a.slice(1, 17)), new Date(b.slice(1, 17))];
+		return d1 - d2;
+	});
 
 let curId;
 let asleepTime;
 let lookup = {};
-let shiftNo = 1;
+
 const getMin = line => Number(line.slice(15, 17));
 input.forEach((line, idx) => {
 	if (line.indexOf('#') === 25) {
@@ -18,24 +18,23 @@ input.forEach((line, idx) => {
 		return;
 	}
 
-	let curGuard = (lookup[curId] || (lookup[curId] = {}));
+	let curGuard = lookup[curId] || (lookup[curId] = {});
 	if (line[19] === 'f') {
 		asleepTime = getMin(line);
 		curGuard.sleep = curGuard.sleep ? curGuard.sleep + 1 : 1;
 		curGuard.minuteLookup = curGuard.minuteLookup || (curGuard.minuteLookup = {});
-		curGuard.minuteLookup[asleepTime] = (curGuard.minuteLookup[asleepTime] || 0) + 1
-	}
-	else if (line[19] === 'w') {
+		curGuard.minuteLookup[asleepTime] = (curGuard.minuteLookup[asleepTime] || 0) + 1;
+	} else if (line[19] === 'w') {
 		let minute = getMin(line);
 		curGuard.minuteLookup = curGuard.minuteLookup || (curGuard.minuteLookup = {});
 		for (let i = asleepTime + 1; i < minute; i++) {
 			curGuard.sleep++;
-			curGuard.minuteLookup[i] = (curGuard.minuteLookup[i] || 0) + 1
+			curGuard.minuteLookup[i] = (curGuard.minuteLookup[i] || 0) + 1;
 		}
 	}
-})
+});
 
-const partOne = (input) => {
+const partOne = () => {
 	let mostSleepy = 0;
 	let sleepiestGuard;
 	let sleepiestId;
@@ -44,7 +43,7 @@ const partOne = (input) => {
 
 	for (let i = 0; i < keys.length; i++) {
 		if (lookup[keys[i]].sleep > mostSleepy) {
-			sleepiestGuard = lookup[keys[i]]
+			sleepiestGuard = lookup[keys[i]];
 			sleepiestId = keys[i];
 			mostSleepy = lookup[keys[i]].sleep;
 		}
@@ -58,10 +57,10 @@ const partOne = (input) => {
 			max = sleepiestGuard.minuteLookup[min];
 			minuteNum = min;
 		}
-	})
+	});
 
 	console.log(minuteNum * sleepiestId);
-}
+};
 
 const getHighest = timeLog => {
 	if (!timeLog) {
@@ -79,9 +78,9 @@ const getHighest = timeLog => {
 	}
 
 	return [highestId, highest];
-}
+};
 
-const partTwo = (input) => {
+const partTwo = () => {
 	let mostSleepy = 0;
 	let sleepiestGuard;
 	let sleepiestMinute;
@@ -98,7 +97,7 @@ const partTwo = (input) => {
 	}
 
 	console.log(sleepiestGuard * sleepiestMinute);
-}
+};
 
 partOne(input);
 partTwo(input);

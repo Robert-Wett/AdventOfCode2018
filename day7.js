@@ -108,7 +108,7 @@ d8888b.  .d8b.  d8888b. d888888b                 .d888b.
 /**
  * Worker elf that is capable of taking the fuse and working on it
  * or w/e it's doing to it and blow the fuse. It then returns the
- * fuse.
+ * fuse when it's done with the job.
  */
 class Worker {
 	constructor(id) {
@@ -118,12 +118,23 @@ class Worker {
 		this.fuse;
 	}
 
+	/**
+	 * Give this worker elf a fuse to work on.
+	 * @param {Object} fuse - the fuse this worker needs to start working on 
+	 */
 	setFuse(fuse) {
 		this.fuse = fuse;
 		this.jobTime = fuse.timer;
 		this.busy = true;
 	}
 
+	/**
+	 * Advance the time period that this worker has worked on the fuse. If the
+	 * time worked on it or the {amount} is greater than the time left in the job,
+	 * than we blow the fuse and return it;
+	 *
+	 * @param {Number} amount 
+	 */
 	advancefuse(amount) {
 		if (!this.busy) return;
 		if (this.jobTime <= amount) {
@@ -132,6 +143,12 @@ class Worker {
 		this.jobTime -= amount;
 	}
 
+	/**
+	 * The fuse this worker elf was working on is process/blown. Reset our internal
+	 * worker counters (busy, jobTime), and mark the fuse as blown before returning it.
+	 * We return this so that the main loop can look at it's children and add them to the
+	 * open circuits potentially.
+	 */
 	_releasefuse() {
 		this.busy = false;
 		this.jobTime = 0;
@@ -141,6 +158,11 @@ class Worker {
 		return fuse;
 	}
 }
+/**
+ * Controls the assignment of jobs to worker elves within this pool to work on.
+ * Also used to make the worker elves in the pool start working on individual jobs
+ * and returns workers that can pick up the next ones.
+ */
 class WorkerPool {
 	constructor(size = 5) {
 		this.workTime = 0;
@@ -150,6 +172,12 @@ class WorkerPool {
 		}
 	}
 
+	/**
+	 * Goes through all the pools workers to see what the lowest amount of time that would
+	 * need to be ticked forward to free up at least one job.
+	 *
+	 * @returns {Number} the lowest amount of time to tick forward before a job opens up
+	 */
 	getMinTime() {
 		return this.pool.reduce(
 			(lowest, nextWorker) =>
@@ -158,6 +186,16 @@ class WorkerPool {
 		);
 	}
 
+	/**
+	 * Given {nodeArr} of free circuits to be assigned, check how many free workers we have
+	 * available to assign these two, and assign as many jobs from the {nodeArr} as possible
+	 * to our available workers.
+	 *
+	 * @param {Array<String>} nodeArr 
+	 * @param {Object} board 
+	 * 
+	 * @returns {Array<Node>} the nodes that were not able to be assigned to a worker to work on.
+	 */
 	assignWorkers(nodeArr, board) {
 		if (nodeArr.length === 0) return [];
 		const freeWorkers = this.pool.filter(w => w.jobTime === 0);
@@ -169,6 +207,12 @@ class WorkerPool {
 		return nodeArr;
 	}
 
+	/**
+	 * Advance the workers time the minimum amount of time before we can free up a worker.
+	 * Each time we do this, we add the work time done to our 'workTime' counter for the anser.
+	 * 
+	 * @returns {Array<Node>} the list of blown fuses after doing work.
+	 */
 	work() {
 		const tickAmt = this.getMinTime();
 		this.workTime += tickAmt;
@@ -176,6 +220,11 @@ class WorkerPool {
 		return blownFuses.sort((a, b) => a.label - b.label);
 	}
 
+	/**
+	 * Check to see if any of our workers are still processing a fuse.
+	 * 
+	 * @returns {Boolean} {true} if there are workers who are still processing a fuse.
+	 */
 	isWorking() {
 		return this.pool.filter(w => w.jobTime !== 0).length > 0;
 	}
