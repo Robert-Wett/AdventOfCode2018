@@ -5,44 +5,57 @@ class Player {
 	}
 }
 
-const simulateGame = (numPlayers, lastMarble) => {
+class Node {
+	constructor(val, next, prev) {
+		this.value = val;
+		this.prev = prev || this;
+		this.next = next || this;
+	}
+
+	append(node) {
+		node.prev = this;
+		node.next = this.next;
+		this.next.prev = node;
+		this.next = node;
+		return this.next;
+	}
+
+	remove() {
+		this.prev.next = this.next;
+		this.next.prev = this.prev;
+		let replacementNode = this.next;
+		this.prev = this.next = this.value = null;
+		return replacementNode;
+	}
+}
+
+const runGame = (numPlayers, lastMarble) => {
 	const players = [];
 	for (let i = 0; i < numPlayers; i++) {
 		players.push(new Player(i));
 	}
 
-	let turn = 1;
-	let board = [0];
-
-	for (turn; turn <= lastMarble; turn++) {
-		let player = players[turn % (numPlayers - 1)];
-		if (turn === 1) {
-			board.push(turn);
+	let curNode = new Node(0);
+	curNode = curNode.append(new Node(1));
+	for (let turn = 2; turn <= lastMarble + 1; turn++) {
+		let player = players[turn % numPlayers];
+		if (turn % 23 === 0) {
+			player.score += turn;
+			curNode = curNode.prev.prev.prev.prev.prev.prev.prev;
+			player.score += curNode.value;
+			curNode = curNode.remove();
 		} else {
-			board = takeTurn(board, player, turn);
+			curNode = curNode.next.append(new Node(turn));
 		}
 	}
 
-	return players;
-};
+	return players.reduce((acc, p) => {
+		if (acc > p.score) return acc;
+		return p.score;
+	}, 0);
+}
 
-const takeTurn = (board, player, marble) => {
-	const prevMarbleIdx = board.indexOf(marble - 1);
-	if (marble % 23 === 0) {
-		player.score += marble;
-		let offset =
-			prevMarbleIdx - 7 > 0 ? prevMarbleIdx - 7 : board.length - Math.abs(prevMarbleIdx - 7);
 
-		player.score += board.splice(offset, offset + 1)[0];
-		return board;
-	}
-	// Regular marble
-	let newMarbleIdx = (prevMarbleIdx + 2) % board.length;
-	return board
-		.slice(0, newMarbleIdx)
-		.concat([marble])
-		.concat(board.slice(newMarbleIdx, board.length));
-};
 
 let output = '';
 const tests = () => {
@@ -51,6 +64,13 @@ const tests = () => {
 		{
 			input: {
 				numPlayers: 7,
+				highMarble: 25
+			},
+			expected: 32
+		},
+		{
+			input: {
+				numPlayers: 9,
 				highMarble: 25
 			},
 			expected: 32
@@ -89,17 +109,30 @@ const tests = () => {
 				highMarble: 5807
 			},
 			expected: 37305
+		},
+		{
+			input: {
+				numPlayers: 441,
+				highMarble: 71032
+			},
+			expected: 393229
+		},
+		{
+			input: {
+				numPlayers: 441,
+				highMarble: 71032 * 100
+			},
+			expected: 3273405195
 		}
 	].forEach(({ input, expected }, index) => {
 		try {
-			const players = simulateGame(input.numPlayers, input.highMarble);
-			const actual = players.reduce((acc, p) => {
-				if (acc > p.score) return acc;
-				return p.score;
-			}, 0);
+			let actual = runGame(input.numPlayers, input.highMarble);
 			if (actual !== expected) {
 				output += `\n Failed test #${index + 1}: Expected ${expected}, got ${actual}.`;
 				passed = false;
+			} else {
+				output += `\n Passed test #${index + 1}: The high score with ${input.numPlayers} ` + 
+							`players and a high marble of ${input.highMarble} is ${actual}`;
 			}
 		} catch (e) {
 			console.log(e);
@@ -114,3 +147,15 @@ const tests = () => {
 };
 
 tests();
+
+/**
+ Passed test #1: The high score with 7 players and a high marble of 25 is 32
+ Passed test #2: The high score with 9 players and a high marble of 25 is 32
+ Passed test #3: The high score with 10 players and a high marble of 1618 is 8317
+ Passed test #4: The high score with 13 players and a high marble of 7999 is 146373
+ Passed test #5: The high score with 17 players and a high marble of 1104 is 2764
+ Passed test #6: The high score with 21 players and a high marble of 6111 is 54718
+ Passed test #7: The high score with 30 players and a high marble of 5807 is 37305
+ Passed test #8: The high score with 441 players and a high marble of 71032 is 393229
+ Passed test #9: The high score with 441 players and a high marble of 7103200 is 3273405195
+ */
